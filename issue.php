@@ -1,0 +1,148 @@
+<?php
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+
+    include 'db.php';
+    session_start();
+
+    if (!isset($_SESSION['user_id'])) {
+        header('Location: login.php');
+        exit();
+    }
+
+    date_default_timezone_set('Asia/Kuala_Lumpur');
+
+    $timestamp = date('dmy_His');
+
+    $query = "SELECT * FROM report_issue ORDER BY issue_ID DESC LIMIT 1";
+    $result = $conn->query($query);
+
+    if ($result) {
+        $lastRow = $result->fetch_assoc(); 
+        $lastID = $lastRow['issue_ID'] + 1;
+    } else {
+        $lastID = 0;
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+        $errors = [];
+
+        $issue_type = $_POST['issue_type'];
+        $issue_description = $_POST['issue_description'];
+        $issue_location = $_POST['issue_location'];
+        $issue_comment = $_POST['issue_comment'];
+        $user_id = $_SESSION['user_id'];
+
+        $photo_path = null;
+        
+        if(empty($issue_type)){
+            $errors[] = "Please select the type of issue.";
+        }
+
+        if (!empty($errors)) {
+            echo "<script>alert('" . implode("\\n", $errors) . "');</script>";
+            echo "<script>window.history.back();</script>";
+            exit();
+        }
+
+        if (isset($_FILES['issue_photo'])) {
+            $issue_photo = $_FILES['issue_photo'];
+        
+            if ($issue_photo['error'] !== UPLOAD_ERR_OK) {
+                echo "Error uploading file: " . $issue_photo['error']; 
+                exit;
+            }
+        
+            $target_dir = "uploads/"; 
+            if (!is_dir($target_dir)) {
+                echo "Upload directory does not exist.";
+            }
+        
+
+
+            $filename = preg_replace('/\s+/', '_', $issue_photo['name']); 
+            $target_file = $target_dir . basename($filename); 
+        
+            if (move_uploaded_file($issue_photo['tmp_name'], $target_file)) {
+                $photo_path = $target_file; 
+                $photo_name = $timestamp.'_'.$lastID.'_'.$photo_path;
+            } else {
+                echo "Error moving the uploaded photo.";
+                exit;
+            }
+        } else {
+            echo "No photo uploaded or there was an upload error.";
+            exit;
+        }
+        
+        $sqlQuery = "INSERT INTO report_issue (issue_type, issue_location, issue_description, issue_comment, issue_photo, issue_status, user_id) VALUES (?, ?, ?, ?, ?, 'New', ?)";
+        $stmt = $conn->prepare($sqlQuery);
+        $stmt->bind_param("sssssi", $issue_type, $issue_location, $issue_description, $issue_comment, $photo_name, $user_id); // Bind parameters
+    
+        $ret = $stmt->execute();
+
+        if ($ret == TRUE) {
+            echo "<script>alert('This issue has been reported!')</script>";
+            echo "<script>window.location = 'dashboard.php'</script>";
+        } else {
+            echo "Fail to report the issue: " . $stmt->error; 
+        }
+
+        $stmt->close();
+        $conn->close();
+    }
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Issue</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center">Report Issues</h2>
+        <form method="post" action="issue.php" class="w-50 mx-auto" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="issue_type" class="form-label">Type of issue:</label> <br>
+                <select class="form-select" id="issue_type" name="issue_type">
+                    <option value="" selected disabled>Select a type</option>
+                    <option value="missed_pickup">Missed pickup</option>
+                    <option value="overflowing_bin">Overflowing bin</option>
+                    <option value="illegal_dumping">Illegal dumping</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="issue_location" class="form-label">Location:</label>
+                <input type="text" class="form-control" name="issue_location" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="issue_description" class="form-label">Description:</label>
+                <input type="text" class="form-control" name="issue_description" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="issue_comment" class="form-label">Comment:</label>
+                <input type="text" class="form-control" name="issue_comment">
+            </div>
+
+            <div class="mb-3">
+                <label style="padding-bottom:10px;" for="photo">Photo:</label> <br>
+                <input type="file" id="issue_photo" name="issue_photo">
+            </div>
+
+            <br><br><br>
+
+            <button type="submit" class="btn btn-primary w-100">Report Issue</button>
+        </form>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
