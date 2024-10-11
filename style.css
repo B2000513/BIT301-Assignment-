@@ -1,0 +1,67 @@
+.sidebar {
+    width: 60px; 
+    transition: width 0.3s;
+    background-color: rgb(136, 217, 136);
+    height: 100vh;
+    padding: 10px;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+.menu-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.menu-list li {
+    display: flex;
+    align-items: center; 
+    margin-bottom: 20px;
+    color: black;
+    cursor: pointer;
+    padding: 10px; 
+}
+
+.menu-list li:hover {
+    background-color: #30aa6b;
+    border-radius: 5px;
+}
+
+.menu-list li i {
+    font-size: 20px; 
+    margin-right: 10px; 
+}
+
+.menu-item {
+    display: none; 
+    margin-left: 10px;
+}
+
+.sidebar-expanded {
+    width: 250px; 
+}
+
+.sidebar-expanded .menu-item {
+    display: inline-block; 
+}
+
+#toggleBtn {
+    color: white;
+    border: none;
+    font-size: 20px;
+}
+
+#toggleBtn:hover {
+    background-color: #30aa6b;
+}
+
+.btn-submit{
+    background-color: rgb(136, 217, 136);
+}
+
+.btn-submit:hover{
+    background-color: #30aa6b;
+}
