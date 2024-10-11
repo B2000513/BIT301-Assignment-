@@ -106,7 +106,7 @@
 <body>
     <div class="sidebar">
         <button id="toggleBtn" class="btn mb-3 toggle-btn" onclick="toggleSidebar()">
-            <i><img style="height:15px;" src="image/menu.svg" ></i>
+            <i style="color:black;" class="fa fa-bars"></i>
         </button>
         <ul class="menu-list">
             <li>
