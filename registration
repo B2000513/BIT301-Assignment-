@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $phone_number = $_POST['phone_number'];
 
     // Check if username or email already exists
-    $sql = "SELECT * FROM Users WHERE username = ? OR email = ?";
+    $sql = "SELECT * FROM users WHERE username = ? OR email = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ss", $username, $email);
     $stmt->execute();
@@ -22,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Hash the password before storing it
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        // Insert the user details into the Users table
-        $sql = "INSERT INTO Users (username, password_hash, email, full_name, address, phone_number) VALUES (?, ?, ?, ?, ?, ?)";
+        // Insert the user details into the users table
+        $sql = "INSERT INTO users (username, password_hash, email, full_name, address, phone_number) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("ssssss", $username, $hashed_password, $email, $full_name, $address, $phone_number);
         
