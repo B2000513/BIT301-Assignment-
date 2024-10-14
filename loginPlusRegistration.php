@@ -28,7 +28,7 @@ if (isset($_POST['login'])) {
 }
 
 // Handle registration request
-if (isset($_POST['register'])) {
+if (isset($_POST['api/register'])) {
     $username = $_POST['reg_username'];
     $password = $_POST['reg_password'];
     $email = $_POST['reg_email'];
