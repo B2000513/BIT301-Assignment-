@@ -38,7 +38,7 @@
                         exit;
                     } else if($user['role'] == 'admin'){
                         echo "<script> alert('You have logged in as community admin!') </script>";
-                        echo "<script> window.location = 'admin.php' </script>";
+                        echo "<script> window.location = 'admin/pickUpLog.php' </script>";
                         exit;
                     }
                 }
