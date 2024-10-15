@@ -34,11 +34,11 @@
                 } else {
                     if($user['role'] == 'personal'){
                         echo "<script> alert('You have logged in as community user!') </script>";
-                        echo "<script> window.location = 'issue.php' </script>";
+                        echo "<script> window.location = 'dashboard.php' </script>";
                         exit;
                     } else if($user['role'] == 'admin'){
                         echo "<script> alert('You have logged in as community admin!') </script>";
-                        echo "<script> window.location = 'admin/pickUpLog.php' </script>";
+                        echo "<script> window.location = 'ManageIssue.php' </script>";
                         exit;
                     }
                 }
@@ -48,7 +48,7 @@
         } else {
             echo "<div class='alert alert-danger'>User not found!</div>";
         }
-    }    
+    }
 
     if (isset($_POST["register"]))
     {
@@ -57,6 +57,7 @@
         $full_name = $_POST['reg_full_name'];
         $address = $_POST['reg_address'];
         $phone_number = $_POST['reg_phone_number'];
+        $community_id = $_POST['community_id'];
 
         $sql = "SELECT * FROM users WHERE email = ?";
         $stmt = $conn->prepare($sql);
@@ -95,9 +96,9 @@
                 $encrypted_password = password_hash($password, PASSWORD_DEFAULT);
 
                 // Prepare the SQL statement
-                $stmt = $conn->prepare("INSERT INTO users (full_name, email, password_hash, address, phone_number, verification_code, email_verified_at, role) VALUES (?, ?, ?, ?, ?, ?, NULL, 'personal')");
+                $stmt = $conn->prepare("INSERT INTO users (full_name, email, password_hash, address, phone_number, verification_code, email_verified_at, role, ComID) VALUES (?, ?, ?, ?, ?, ?, NULL, 'personal',?)");
 
-                $stmt->bind_param("sssssi", $full_name, $email, $encrypted_password, $address, $phone_number, $verification_code);
+                $stmt->bind_param("sssssii", $full_name, $email, $encrypted_password, $address, $phone_number, $verification_code, $community_id);
 
                 if ($stmt->execute()) {
                     echo "<div class='alert alert-success'>Registration successful! You will receive the authentication code in your email.</div>";
@@ -130,7 +131,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body class="mybg">
     <div class="container mt-5">
         <h2 class="text-center">Login or Register</h2>
         <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -154,7 +155,7 @@
                         <label for="password" class="form-label">Password</label>
                         <input type="password" class="form-control" name="password" required>
                     </div>
-                    <button type="submit" name="login" class="btn btn-submit w-100">Login</button>
+                    <button type="submit" name="login" class="btn btn-submit btn-success w-100">Login</button>
                 </form>
             </div>
 
@@ -181,7 +182,22 @@
                         <label for="reg_phone_number" class="form-label">Phone Number</label>
                         <input type="text" class="form-control" name="reg_phone_number">
                     </div>
-                    <button type="submit" name="register" class="btn btn-submit w-100">Register</button>
+                    <div class="mb-3">
+                        <label for="community_id" class="form-label">Community</label>
+                        <select class="form-select" name="community_id" required>
+                            <option value="">Select a Community</option>
+                            <?php
+                            // Assuming you have a database connection established
+                            $query = "SELECT ComID, ComName FROM community"; // Adjust the query as per your table structure
+                            $result = mysqli_query($conn, $query);
+
+                            while ($row = mysqli_fetch_assoc($result)) {
+                                echo '<option value="' . $row['ComID'] . '">' . $row['ComName'] . '</option>';
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <button type="submit" name="register" class="btn btn-submit btn-success w-100">Register</button>
                 </form>
             </div>
         </div>
