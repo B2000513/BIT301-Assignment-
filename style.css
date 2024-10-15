@@ -73,3 +73,52 @@
 .nav-tabs .nav-link.active {
     color: #30aa6b; /
 }
+
+.mybg{
+    background: linear-gradient(to bottom, #c5e8b7, #abe098,#9ee192,#85e37c); 
+    height: 100vh; /* Make sure the body takes the full height */
+    margin: 0; /* Remove default margin */
+}
+
+.details-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px; 
+    position: relative; 
+}
+.details-box {
+    width: 100%; 
+    max-width: 500px; 
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-top: 60px; 
+    word-wrap: break-word; /* Allow long words to break onto the next line */
+    overflow-wrap: break-word; /* Break words as needed */
+}
+.details-row {
+    margin-bottom: 15px;
+}
+.btn-back {
+    position: absolute;
+    top: 30px; 
+    left: 20px; 
+}
+
+.btn-back:hover {
+    background-color: #74D680; 
+    color: black; 
+}
+
+.title {
+    text-align: center; 
+    margin: 20px 0; 
+    font-size: 30px;
+}
+
+.table-bordered{
+    border: 2px solid black;
+}
