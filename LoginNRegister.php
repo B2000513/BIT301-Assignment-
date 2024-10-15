@@ -33,10 +33,12 @@
                     echo "<div class='alert alert-warning'>Please verify your email from <a href='email-verification.php?email=" . htmlspecialchars($email) . "'>here</a>.</div>";
                 } else {
                     if($user['role'] == 'personal'){
-                        header("Location: issue.php");
+                        echo "<script> alert('You have logged in as community user!') </script>";
+                        echo "<script> window.location = 'issue.php' </script>";
                         exit;
                     } else if($user['role'] == 'admin'){
-                        header("Location: admin.php");
+                        echo "<script> alert('You have logged in as community admin!') </script>";
+                        echo "<script> window.location = 'admin.php' </script>";
                         exit;
                     }
                 }
