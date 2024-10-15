@@ -103,7 +103,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body>
+<body class="mybg">
     <div class="sidebar">
         <button id="toggleBtn" class="btn mb-3 toggle-btn" onclick="toggleSidebar()">
             <i style="color:black;" class="fa fa-bars"></i>
