@@ -93,7 +93,7 @@
                 $encrypted_password = password_hash($password, PASSWORD_DEFAULT);
 
                 // Prepare the SQL statement
-                $stmt = $conn->prepare("INSERT INTO users (full_name, email, password_hash, address, phone_number, verification_code, email_verified_at) VALUES (?, ?, ?, ?, ?, ?, NULL)");
+                $stmt = $conn->prepare("INSERT INTO users (full_name, email, password_hash, address, phone_number, verification_code, email_verified_at, role) VALUES (?, ?, ?, ?, ?, ?, NULL, 'personal')");
 
                 $stmt->bind_param("sssssi", $full_name, $email, $encrypted_password, $address, $phone_number, $verification_code);
 
