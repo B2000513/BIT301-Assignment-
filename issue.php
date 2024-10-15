@@ -1,6 +1,7 @@
 <?php
-    error_reporting(E_ALL);
     ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
 
     include 'db.php';
     session_start();
@@ -63,19 +64,34 @@
             $filename = preg_replace('/\s+/', '_', $issue_photo['name']); 
             $target_file = $target_dir . basename($filename); 
         
+            // if (move_uploaded_file($issue_photo['tmp_name'], $target_file)) {
+            //     $photo_path = $target_file; 
+            //     $photo_name = $timestamp.'_'.$lastID.'_'.$photo_path;
+            // } else {
+            //     echo "Error moving the uploaded photo.";
+            //     exit;
+            // }
             if (move_uploaded_file($issue_photo['tmp_name'], $target_file)) {
-                $photo_path = $target_file; 
-                $photo_name = $timestamp.'_'.$lastID.'_'.$photo_path;
-            } else {
-                echo "Error moving the uploaded photo.";
-                exit;
+                // Generate a unique photo name
+                $filename = preg_replace('/\s+/', '_', pathinfo($issue_photo['name'], PATHINFO_FILENAME)); // Get filename without extension
+                $extension = pathinfo($issue_photo['name'], PATHINFO_EXTENSION); // Get the file extension
+                $photo_name = $timestamp . '_' . $lastID . '_' . $filename . '.' . $extension; // New unique filename
+            
+                // Move the uploaded file to the target directory with the new name
+                if (rename($target_file, $target_dir . $photo_name)) {
+                    $photo_path = $target_dir . $photo_name; // Store the full path for database insertion
+                } else {
+                    echo "Error renaming the uploaded photo.";
+                    exit;
+                }
             }
+            
         } else {
             echo "No photo uploaded or there was an upload error.";
             exit;
         }
         
-        $sqlQuery = "INSERT INTO report_issue (issue_type, issue_location, issue_description, issue_comment, issue_photo, issue_status, user_id) VALUES (?, ?, ?, ?, ?, 'New', ?)";
+        $sqlQuery = "INSERT INTO report_issue (issue_type, issue_location, issue_description, issue_comment, issue_photo, issue_status, user_id) VALUES (?, ?, ?, ?, ?, 'Pending', ?)";
         $stmt = $conn->prepare($sqlQuery);
         $stmt->bind_param("sssssi", $issue_type, $issue_location, $issue_description, $issue_comment, $photo_name, $user_id); // Bind parameters
     
@@ -97,7 +113,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Report Issue</title>
-    <link rel="icon" type="image/x-icon" href="Pictures/">
+    <link rel="icon" type="image/x-icon" href="image/issue.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
@@ -136,7 +152,12 @@
         </ul>
     </div>      
 
-    <div class="container mt-5">
+    <div class="text-center"> 
+        <h1 class="title"> Wastex </h1>
+        <p class="title"> Your Best Recycle Helper</p>
+    </div> 
+
+    <div class="container mt-3 form-border">
         <h2 class="text-center">Report Issues</h2>
         <form method="post" action="issue.php" class="w-50 mx-auto" enctype="multipart/form-data">
             <div class="mb-3">
@@ -169,9 +190,9 @@
                 <input type="file" id="issue_photo" name="issue_photo">
             </div>
 
-            <br><br><br>
+            <br>
 
-            <button type="submit" class="btn btn-submit w-100">Report Issue</button>
+            <button type="submit" class="btn btn-submit btn-success w-100">Report Issue</button>
         </form>
     </div>    
 
