@@ -32,8 +32,13 @@
                 if ($user['email_verified_at'] == null) {
                     echo "<div class='alert alert-warning'>Please verify your email from <a href='email-verification.php?email=" . htmlspecialchars($email) . "'>here</a>.</div>";
                 } else {
-                    header("Location: issue.php");
-                    exit;
+                    if($user['role'] == 'personal'){
+                        header("Location: issue.php");
+                        exit;
+                    } else if($user['role'] == 'admin'){
+                        header("Location: admin.php");
+                        exit;
+                    }
                 }
             } else {
                 echo "<div class='alert alert-danger'>Invalid password!</div>";
