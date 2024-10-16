@@ -82,7 +82,7 @@
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port = 587;
 
-                $mail->setFrom('xwkhor0713@gmail.com', 'www.cwms.com');
+                $mail->setFrom('wastex.cwms@gmail.com', 'Wastex - CWMS');
                 $mail->addAddress($email, $full_name);
                 $mail->isHTML(true);
 
