@@ -44,7 +44,7 @@
                         exit;
                     } else if($user['role'] == 'admin'){
                         echo "<script> alert('You have logged in as community admin!') </script>";
-                        echo "<script> window.location = 'ManageIssue.php' </script>";
+                        echo "<script> window.location = 'adminDashboard.php' </script>";
                         exit;
                     }
                 }
