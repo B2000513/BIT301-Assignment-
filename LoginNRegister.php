@@ -29,6 +29,12 @@
             // Verify the password
             if (password_verify($password, $user['password_hash'])) {
                 $_SESSION['user_id'] = $user['user_id'];
+                $_SESSION['role'] = $user['role'];
+
+                if ($user['role'] == 'admin') {
+                    $_SESSION['ComID'] = $user['ComID'];  
+                }
+
                 if ($user['email_verified_at'] == null) {
                     echo "<div class='alert alert-warning'>Please verify your email from <a href='email-verification.php?email=" . htmlspecialchars($email) . "'>here</a>.</div>";
                 } else {
