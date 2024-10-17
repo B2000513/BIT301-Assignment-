@@ -22,12 +22,14 @@
         $issue = $result->fetch_assoc();
 
         if (!$issue) {
-            echo "Issue not found.";
-            exit();
-        }
+            echo "<script> alert('Issue not.');
+                        window.history.back();
+            </script>";  
+        } 
     } else {
-        echo "No issue ID provided.";
-        exit();
+        echo "<script> alert('No issue ID provided.');
+                        window.history.back();
+            </script>";        
     }
 ?>
 
@@ -50,7 +52,7 @@
         <a href="javascript:history.back()" class="btn btn-back btn-success">Back to list</a>
         
         <div class="details-box">
-            <h1 class="title">Issue Details (ID: <?= ($issue['issue_ID']) ?>)</h1>
+            <h1 class="subtitle">Issue Details (ID: <?= ($issue['issue_ID']) ?>)</h1>
 
             <div class="row details-row">
                 <div class="col-12 col-md-6"><strong>Type:</strong></div>
