@@ -22,6 +22,8 @@ $user = $stmt->get_result()->fetch_assoc();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 
 
@@ -34,7 +36,7 @@ $user = $stmt->get_result()->fetch_assoc();
         </button>
         <ul class="menu-list">
             <li>
-                <i class="fa fa-home"></i><span class="menu-item">Homepage</span>
+                <i class="fa fa-home"></i><a class="nav-link" href="adminDashboard.php"<span class="menu-item">Homepage</span>
             </li>
             <li>
                 <i class="fa fa-user-circle-o"></i> <a class="nav-link" href="manage_profile.php"> <span class="menu-item">Your Account</span></a>
@@ -68,6 +70,7 @@ $user = $stmt->get_result()->fetch_assoc();
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+   
 </body>
-
+<script src="script.js"></script>
 </html>

@@ -41,9 +41,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Schedule Pickup</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+<div class="sidebar">
+        <button id="toggleBtn" class="btn mb-3 toggle-btn" onclick="toggleSidebar()">
+            <i style="color:black;" class="fa fa-bars"></i>
+        </button>
+        <ul class="menu-list">
+            <li>
+                <i class="fa fa-home"></i><span class="menu-item">Homepage</span>
+            </li>
+            <li>
+                <i class="fa fa-user-circle-o"></i> <a class="nav-link" href="manage_profile.php"> <span class="menu-item">Your Account</span></a>
+            </li>
+            <li>
+                <i class="fa fa-bell"></i> <a class="nav-link" href="#"> <span class="menu-item">Announcement</span></a>
+            </li>
+            <li>
+                <i class="fa fa-calendar-check-o"></i> <a class="nav-link" href="schedule_pickup.php"> <span class="menu-item">Schedule Pickup</span></a>
+            </li>
+            <li>
+                <i class="fa fa-file-text"></i> <a class="nav-link" href="issue.php"><span class="menu-item">Raise Issues</span></a>
+            </li>
+            <li>
+                <i class="fa fa-bar-chart"></i> <a class="nav-link" href="#"> <span class="menu-item">Statistics</span></a>
+            </li>
+            <li>
+                <i class="fa fa-history"></i> <a class="nav-link" href="#"> <span class="menu-item">Your History</span></a>
+            </li>
+            <li>
+                <i class="fa fa-sign-out"></i> <a class="nav-link" href="logout.php"> <span class="menu-item">Logout</span> </a>
+            </li>
+        </ul>
+    </div>  
+
     <div class="container mt-5">
         <h2 class="text-center">Schedule Waste Pickup</h2>
         <form method="post" action="schedule_pickup.php" class="w-50 mx-auto">
@@ -72,6 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </form>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>

@@ -25,7 +25,7 @@ if (!$editUser) {
 }
 
 // Fetch all communities for the dropdown
-$communityQuery = "SELECT * FROM communities";
+$communityQuery = "SELECT * FROM community";
 $communityResult = $conn->query($communityQuery);
 
 // Update user logic
