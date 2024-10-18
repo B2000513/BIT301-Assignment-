@@ -19,11 +19,36 @@ $user = $stmt->get_result()->fetch_assoc();
 // Fetch the schedules for the user's community
 $comID = $user['ComID']; // Assuming 'ComID' is the user's community ID
 
-$scheduleQuery = "SELECT * FROM schedules WHERE comID = ?";
+$scheduleQuery = "SELECT day_of_week, time, endTime FROM schedules WHERE comID = ?";
 $scheduleStmt = $conn->prepare($scheduleQuery);
 $scheduleStmt->bind_param("i", $comID);
 $scheduleStmt->execute();
 $schedulesResult = $scheduleStmt->get_result();
+
+// Predefine the days of the week (Monday through Sunday)
+$daysOfWeek = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday'
+];
+
+// Prepare an array to hold the schedule data for each day
+$scheduleData = array_fill_keys($daysOfWeek, ['startTime' => '-', 'endTime' => '-']);
+
+// Populate the schedule data with the start and end times from the database
+while ($schedule = $schedulesResult->fetch_assoc()) {
+    $day = $schedule['day_of_week'];
+    $startTime = $schedule['time'];
+    $endTime = $schedule['endTime'];
+    
+    if (in_array($day, $daysOfWeek)) {
+        $scheduleData[$day] = ['startTime' => $startTime, 'endTime' => $endTime];  // Replace '-' with actual times
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -73,7 +98,7 @@ $schedulesResult = $scheduleStmt->get_result();
     </div>  
 
     <div class="container mt-5">
-        <h1 class="text-center">Welcome, <?php echo $user['full_name']; ?>!</h1>
+        <h1 class="text-center">Welcome, <?php echo htmlspecialchars($user['full_name']); ?>!</h1>
         <div class="text-center mt-4">
             <a href="schedule_pickup.php" class="btn btn-success">Schedule Waste Pickup</a>
             <a href="logout.php" class="btn btn-danger">Logout</a>
@@ -82,26 +107,24 @@ $schedulesResult = $scheduleStmt->get_result();
         <!-- Schedules Section -->
         <div class="mt-5">
             <h2 class="text-center">Your Community's Pickup Schedules</h2>
-            <?php if ($schedulesResult->num_rows > 0): ?>
-                <table class="table table-bordered mt-3">
-                    <thead>
+            <table class="table table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>Day of the Week</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($scheduleData as $day => $times): ?>
                         <tr>
-                            <th>Day of the Week</th>
-                            <th>Time</th>
+                            <td><?php echo htmlspecialchars($day); ?></td>
+                            <td><?php echo htmlspecialchars($times['startTime']); ?></td>
+                            <td><?php echo htmlspecialchars($times['endTime']); ?></td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($schedule = $schedulesResult->fetch_assoc()): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($schedule['day_of_week']); ?></td>
-                                <td><?php echo htmlspecialchars($schedule['time']); ?></td>
-                            </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p class="text-center">No schedules available for your community.</p>
-            <?php endif; ?>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 
