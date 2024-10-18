@@ -2,43 +2,130 @@
 session_start();
 include 'db.php';  // MySQLi connection
 
-// Fetch current user's profile
+// Ensure the user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
 $userId = $_SESSION['user_id'];
+$successMsg = $errorMsg = '';  // Initialize feedback messages
 
-// Check if the 'ComID' key is set in the session, use a fallback or handle accordingly
-$adminComID = isset($_SESSION['ComID']) ? $_SESSION['ComID'] : null;
-
-// Prepare the query to fetch user data
+// Fetch current user's profile
 $query = "SELECT * FROM users WHERE user_id = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param('i', $userId);
 $stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
+$user = $stmt->get_result()->fetch_assoc();
 
-// Check if the logged-in user is an admin
-$isAdmin = ($_SESSION['role'] === 'admin');
+// Ensure the logged-in user has a role
+$isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 
-// Fetch all communities for the dropdown
+// Check if the 'ComID' key is set in the session or use the selected ComID from the dropdown
+$adminComID = isset($_POST['selected_com_id']) ? $_POST['selected_com_id'] : (isset($_SESSION['ComID']) ? $_SESSION['ComID'] : null);
+
+// Fetch all communities for dropdowns
 $communityQuery = "SELECT * FROM community";
 $communityResult = $conn->query($communityQuery);
 
-// Initialize feedback message variables
-$successMsg = $errorMsg = '';
+// Fetch available days of the week from the database
+$daysOfWeekQuery = "SELECT  day_of_week FROM schedules";
+$daysOfWeekResult = $conn->query($daysOfWeekQuery);
 
-// Update Profile
+// Predefined days of the week (Monday through Friday)
+$defaultDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+// Collect dynamic days from the database
+$dynamicDays = [];
+if ($daysOfWeekResult->num_rows > 0) {
+    while ($row = $daysOfWeekResult->fetch_assoc()) {
+        $dynamicDays[] = $row['day_of_week'];
+    }
+}
+
+// Combine predefined days with dynamic days
+$allDaysOfWeek = array_unique(array_merge($defaultDays, $dynamicDays));
+
+// Fetch schedules for the current admin's community
+if ($adminComID) {
+    $scheduleQuery = "SELECT * FROM schedules WHERE comID = ?";
+    $scheduleStmt = $conn->prepare($scheduleQuery);
+    $scheduleStmt->bind_param('i', $adminComID);
+    $scheduleStmt->execute();
+    $schedulesResult = $scheduleStmt->get_result();
+}
+
+
+// Fetch schedules for the current admin's community
+if ($adminComID) {
+    $scheduleQuery = "SELECT * FROM schedules WHERE comID = ?";
+    $scheduleStmt = $conn->prepare($scheduleQuery);
+    $scheduleStmt->bind_param('i', $adminComID);
+    $scheduleStmt->execute();
+    $schedulesResult = $scheduleStmt->get_result();
+}
+
+// Handle schedule form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['schedules'])) {
+    $dayOfWeek = $_POST['day_of_week'];
+    $startTime = $_POST['startTime'];
+    $endTime = $_POST['endTime'];
+
+    // Validate inputs
+    if (empty($dayOfWeek) || empty($startTime) || empty($endTime)) {
+        $errorMsg = "All fields are required for schedules.";
+    } else {
+        // Check if the schedule already exists for the selected day
+        $existingScheduleQuery = "SELECT * FROM schedules WHERE comID = ? AND day_of_week = ?";
+        $existingScheduleStmt = $conn->prepare($existingScheduleQuery);
+        $existingScheduleStmt->bind_param('is', $adminComID, $dayOfWeek);
+        $existingScheduleStmt->execute();
+        $existingScheduleResult = $existingScheduleStmt->get_result();
+
+        if ($existingScheduleResult->num_rows > 0) {
+            // Update existing schedule
+            $updateScheduleQuery = "UPDATE schedules SET time = ?, endTime = ? WHERE comID = ? AND day_of_week = ?";
+            $updateScheduleStmt = $conn->prepare($updateScheduleQuery);
+            $updateScheduleStmt->bind_param('ssis', $startTime, $endTime, $adminComID, $dayOfWeek);
+
+            if ($updateScheduleStmt->execute()) {
+                $successMsg = "Schedule updated successfully!";
+            } else {
+                $errorMsg = "Failed to update schedule. Please try again.";
+            }
+        } else {
+            // Insert a new schedule
+            $insertScheduleQuery = "INSERT INTO schedules (comID, day_of_week, time, endTime) VALUES (?, ?, ?, ?)";
+            $insertScheduleStmt = $conn->prepare($insertScheduleQuery);
+            $insertScheduleStmt->bind_param('isss', $adminComID, $dayOfWeek, $startTime, $endTime);
+
+            if ($insertScheduleStmt->execute()) {
+                $successMsg = "Schedule added successfully!";
+            } else {
+                $errorMsg = "Failed to add schedule. Please try again.";
+            }
+        }
+    }
+}
+
+// Handle profile update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     $fullName = $_POST['full_name'];
     $address = $_POST['address'];
     $phoneNumber = $_POST['phone_number'];
-    $newComID = $_POST['com_id'];  // Get selected community ID
+    $newComID = $_POST['com_id'];
 
-    // Update user profile in the database
-    $updateQuery = "UPDATE users SET full_name = ?, address = ?, phone_number = ?, ComID = ? WHERE user_id = ?";
-    $updateStmt = $conn->prepare($updateQuery);
-    $updateStmt->bind_param('sssii', $fullName, $address, $phoneNumber, $newComID, $userId);
+    if (!empty($_POST['password'])) {
+        $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+        $updateQuery = "UPDATE users SET full_name = ?, address = ?, password = ?, phone_number = ?, ComID = ? WHERE user_id = ?";
+        $updateStmt = $conn->prepare($updateQuery);
+        $updateStmt->bind_param('sssii', $fullName, $address, $password, $phoneNumber, $newComID, $userId);
+    } else {
+        $updateQuery = "UPDATE users SET full_name = ?, address = ?, phone_number = ?, ComID = ? WHERE user_id = ?";
+        $updateStmt = $conn->prepare($updateQuery);
+        $updateStmt->bind_param('sssii', $fullName, $address, $phoneNumber, $newComID, $userId);
+    }
 
-    // Execute the update query and check for success
     if ($updateStmt->execute()) {
         $successMsg = "Profile updated successfully!";
     } else {
@@ -46,8 +133,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     }
 }
 
-// Admin: Fetch all users within the same ComID
-if ($isAdmin && $adminComID !== null) {  // Ensure $adminComID is set
+// Admin: Fetch users for the selected or default community
+if ($isAdmin && $adminComID !== null) {
     $adminQuery = "SELECT * FROM users WHERE ComID = ?";
     $adminStmt = $conn->prepare($adminQuery);
     $adminStmt->bind_param('i', $adminComID);
@@ -59,12 +146,10 @@ if ($isAdmin && $adminComID !== null) {  // Ensure $adminComID is set
         $userToUpdate = $_POST['user_id'];
         $newComID = $_POST['new_com_id'];
 
-        // Update user's community
         $updateComIDQuery = "UPDATE users SET ComID = ? WHERE user_id = ?";
         $updateComIDStmt = $conn->prepare($updateComIDQuery);
         $updateComIDStmt->bind_param('ii', $newComID, $userToUpdate);
 
-        // Provide feedback to the admin
         if ($updateComIDStmt->execute()) {
             $successMsg = "User's community updated successfully!";
         } else {
@@ -80,7 +165,7 @@ if ($isAdmin && $adminComID !== null) {  // Ensure $adminComID is set
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Profile</title>
+    <title>Manage Profile & Schedule</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
@@ -93,9 +178,7 @@ if ($isAdmin && $adminComID !== null) {  // Ensure $adminComID is set
         <div class="alert alert-success" role="alert">
             <?= htmlspecialchars($successMsg) ?>
         </div>
-    <?php endif; ?>
-
-    <?php if ($errorMsg): ?>
+    <?php elseif ($errorMsg): ?>
         <div class="alert alert-danger" role="alert">
             <?= htmlspecialchars($errorMsg) ?>
         </div>
@@ -107,17 +190,18 @@ if ($isAdmin && $adminComID !== null) {  // Ensure $adminComID is set
             <label for="full_name" class="form-label">Full Name:</label>
             <input type="text" name="full_name" id="full_name" class="form-control" value="<?= htmlspecialchars($user['full_name']) ?>" required>
         </div>
-
+        <div class="mb-3">
+            <label for="password" class="form-label">Password (leave blank to keep current):</label>
+            <input type="password" name="password" id="password" class="form-control" placeholder="New Password (if changing)">
+        </div>
         <div class="mb-3">
             <label for="address" class="form-label">Address:</label>
             <input type="text" name="address" id="address" class="form-control" value="<?= htmlspecialchars($user['address']) ?>" required>
         </div>
-
         <div class="mb-3">
             <label for="phone_number" class="form-label">Phone Number:</label>
             <input type="text" name="phone_number" id="phone_number" class="form-control" value="<?= htmlspecialchars($user['phone_number']) ?>">
         </div>
-
         <div class="mb-3">
             <label for="com_id" class="form-label">Community:</label>
             <select name="com_id" id="com_id" class="form-control" required>
@@ -128,14 +212,59 @@ if ($isAdmin && $adminComID !== null) {  // Ensure $adminComID is set
                 <?php endwhile; ?>
             </select>
         </div>
-
         <button type="submit" name="update_profile" class="btn btn-primary">Update Profile</button>
     </form>
 
-    <!-- Admin Section: Manage Other Users -->
+    <!-- Admin Section: Manage Schedules -->
     <?php if ($isAdmin): ?>
-        <h2 class="mb-3">Manage Other Users (Admin Only)</h2>
+        <h2 class="mb-3">Manage Time Schedules (Admin Only)</h2>
+        <form method="POST" action="">
+            <div class="mb-3">
+                <label for="day_of_week" class="form-label">Day of Week:</label>
+                <select name="day_of_week" id="day_of_week" class="form-control" required>
+                <?php foreach ($allDaysOfWeek as $day): ?>
+                        <option value="<?= htmlspecialchars($day) ?>"><?= htmlspecialchars($day) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="startTime" class="form-label">Start Time:</label>
+                <input type="time" name="startTime" id="startTime" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="endTime" class="form-label">End Time:</label>
+                <input type="time" name="endTime" id="endTime" class="form-control" required>
+            </div>
+            <button type="submit" name="schedules" class="btn btn-primary">Add/Update Schedule</button>
+        </form>
+
+        <!-- Display Schedules for the Selected Community -->
+        <h2 class="mt-5 mb-3">Schedules for Community <?= $adminComID ?></h2>
         <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Day of Week</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php while ($schedule = $schedulesResult->fetch_assoc()): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($schedule['day_of_week']) ?></td>
+                        <td><?= htmlspecialchars($schedule['time']) ?></td>
+                        <td><?= htmlspecialchars($schedule['endTime']) ?></td>
+                    </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
+
+        <!-- Manage Users Section -->
+        <h2 class="mb-3">Manage Community Users (Admin Only)</h2>
+        
+
+        <!-- Display Users for the Selected Community -->
+        <table class="table table-bordered mt-4">
             <thead>
                 <tr>
                     <th>User ID</th>
@@ -180,7 +309,6 @@ if ($isAdmin && $adminComID !== null) {  // Ensure $adminComID is set
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
-
 </body>
 
 </html>
